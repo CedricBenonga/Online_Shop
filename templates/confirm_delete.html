@@ -1,0 +1,23 @@
+{% include "header.html" %}
+
+ <!-- Page Header -->
+<header class="masthead" style="background-image: url({{ url_for('static', filename='img/delete-bg.jpg')}})">
+  <div class="overlay"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
+        <div class="page-heading">
+          <div style="text-align: center; color: white; font-style: italic;"><br>
+            <p>Do you really want to delete <b><em>"{{ post.name }}"</em></b> from the list of your articles?</p>
+          </div>
+          <hr>
+          <div class="content" style="text-align: center;">
+            <a href="{{ url_for('get_all_posts') }}" class="btn btn-outline-success">No</a>
+            <a href="{{ url_for('delete_post', post_id=post.id) }}" class="btn btn-outline-danger">Yes</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

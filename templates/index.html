@@ -1,0 +1,125 @@
+{% include "header.html" %}
+
+<div class="container" style="padding-top: 75px;">
+    <!--    Site title-->
+    <h4 style="color: #526D82; text-align: center; padding-bottom: 25px;">
+        Welcome to High Quality Shoes (HQS)</h4>
+
+    <!--    Search-bar-->
+    <nav class="navbar" style="margin-bottom:40px;">
+        <div class="container-fluid">
+            <form action="{{ url_for('search') }}" method="post" class="d-flex" style="position: absolute; right: 0;">
+                <input class="form-control me-2" type="search" placeholder="Search name or location" aria-label="Search"
+                       name="search">
+                <button class="btn btn-outline-dark" type="submit"
+                        style="height: 44px; border-radius: 5%; padding-bottom: 20px;">
+                    Search
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="col-lg-8 col-md-10 mx-auto content">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!--    Posts layout-->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-sm-1 g-100">
+
+        {% for post in all_posts: %}
+        <div class="col">
+            <div class="card" style="border: none !important;">
+                <a class="post-a" href="{{ url_for('show_post', post_id=post.id) }}">
+                    <img src={{post.img_url1}} class="card-img-top"
+                         style="width: 290px; height: 290px; border-radius: 10%;">
+                </a>
+
+                <!--                <div id="demo" class="carousel slide" data-bs-interval="false">-->
+
+                <!--                    &lt;!&ndash; Indicators/dots &ndash;&gt;-->
+                <!--                    <div class="carousel-indicators">-->
+                <!--                        <button type="button" data-bs-target="#demo" data-bs-slide-to="0" class="active"></button>-->
+                <!--                        <button type="button" data-bs-target="#demo" data-bs-slide-to="1"></button>-->
+                <!--                        <button type="button" data-bs-target="#demo" data-bs-slide-to="2"></button>-->
+                <!--                    </div>-->
+
+                <!--                    &lt;!&ndash; The slideshow/carousel &ndash;&gt;-->
+                <!--                    <div class="carousel-inner" style="border-radius: 1.5%;">-->
+
+                <!--                        <div class="carousel-item active">-->
+                <!--                            <img src={{post.img_url1}} alt="Article" class="d-block w-100">-->
+                <!--                        </div>-->
+
+                <!--                        <div class="carousel-item">-->
+                <!--                            <img src={{post.img_url2}} alt="Article" class="d-block w-100">-->
+                <!--                        </div>-->
+
+                <!--                        <div class="carousel-item">-->
+                <!--                            <img src={{post.img_url3}} alt="Article" class="d-block w-100">-->
+                <!--                        </div>-->
+
+                <!--                        &lt;!&ndash; Left and right controls/icons &ndash;&gt;-->
+                <!--                        <button class="carousel-control-prev" type="button" data-bs-target="#demo"-->
+                <!--                                data-bs-slide="prev">-->
+                <!--                            <span class="carousel-control-prev-icon"></span>-->
+                <!--                        </button>-->
+                <!--                        <button class="carousel-control-next" type="button" data-bs-target="#demo"-->
+                <!--                                data-bs-slide="next">-->
+                <!--                            <span class="carousel-control-next-icon"></span>-->
+                <!--                        </button>-->
+                <!--                    </div>-->
+
+                <!--                </div>-->
+
+                <div class="card-body">
+                    <a class="post-a" href="{{ url_for('show_post', post_id=post.id) }}" style="text-decoration: none;">
+                        <h5 class="post-subtitle">{{post.name}} </h5>
+                    </a>
+                    {{post.type}}
+                    <hr>
+                    <p class="post-meta">
+
+                        ${{post.article_price}}<em class="float-right">{{post.available}}</em><br>
+
+                        <b><a class="float-left" href="{{url_for('add_to_cart', post_id=post.id)}}"
+                           style="text-decoration: none;"
+                           onmouseout="this.style.color='black'"
+                           onmouseover="this.style.color='green'">Add to Cart</a>
+
+                        <a class="float-right" href="{{url_for('cart')}}"
+                           style="text-decoration: none;">Go to Cart</a><br></b>
+                    <hr>
+                    {% if current_user.id == 1 %}
+                    <a class="post-a" href="{{url_for('confirm_delete', post_id=post.id) }}"
+                       style="text-decoration: none;">Delete Article</a>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!--    New post-->
+    {% if current_user.id == 1 %}
+    <div class="clearfix">
+        <a class="btn btn-outline-dark float-right" href="{{url_for('add_new_post')}}"
+           style="border-radius: 50%;">Post a new Article</a>
+    </div>
+    {% endif %}
+    <hr>
+</div>
+
+{% include "footer.html" %}
+
+
+<!--<i class="fas fa-bags-shopping"></i>-->
+<!--<i class="fas fa-shopping-bag"></i>-->
+<!--<i class="fas fa-shopping-cart"></i>-->
+<!--<i class="fas fa-shopping-basket"></i>-->
