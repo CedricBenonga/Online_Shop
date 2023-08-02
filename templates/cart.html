@@ -18,7 +18,17 @@
                 <div class="card-body">
                     <h5 class="post-subtitle">
                     <a class="post-a" href="{{ url_for('show_post', post_id=post.id) }}" style="text-decoration: none;">
-                        {{post.name}}</a>(<b style="color: red">{{post.quantity}}</b>)</h5>
+                        {{post.name}}
+                    </a>
+                    (<b style="color: red">{{post.quantity}}</b>)
+                    <a class="post-a float-right" href="{{ url_for('reduce', post_id=post.id) }}" style="text-decoration: none;">
+                        ➖
+                    </a>
+                    <a class="post-a float-right" href="{{ url_for('add_to_cart', post_id=post.id) }}"
+                       style="text-decoration: none;">
+                        ➕
+                    </a>
+                    </h5>
 
                     {{post.type}}
                         <hr>
