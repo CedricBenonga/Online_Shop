@@ -8,42 +8,44 @@
     <!--    Posts layout-->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-sm-1 g-100">
         {% for post in all_posts: %}
-        <div class="col">
-            <div class="card" style="border: none !important;">
-                <a class="post-a" href="{{ url_for('show_post', post_id=post.id) }}">
-                    <img src={{post.img_url1}} class="card-img-top"
-                         style="width: 290px; height: 290px; border-radius: 10%;">
-                </a>
+            {% if post.user_id == current_user.id %}
+            <div class="col">
+                <div class="card" style="border: none !important;">
+                    <a class="post-a" href="{{ url_for('show_post', post_id=post.id) }}">
+                        <img src={{post.img_url1}} class="card-img-top"
+                             style="width: 290px; height: 290px; border-radius: 10%;">
+                    </a>
 
-                <div class="card-body">
-                    <h5 class="post-subtitle">
-                    <a class="post-a" href="{{ url_for('show_post', post_id=post.id) }}" style="text-decoration: none;">
-                        {{post.name}}
-                    </a>
-                    (<b style="color: red">{{post.quantity}}</b>)
-                    <a class="post-a float-right" href="{{ url_for('reduce', post_id=post.id) }}" style="text-decoration: none;">
-                        ➖
-                    </a>
-                    <a class="post-a float-right" href="{{ url_for('add_to_cart', post_id=post.id) }}"
-                       style="text-decoration: none;">
-                        ➕
-                    </a>
-                    </h5>
+                    <div class="card-body">
+                        <h5 class="post-subtitle">
+                        <a class="post-a" href="{{ url_for('show_post', post_id=post.id) }}" style="text-decoration: none;">
+                            {{post.name}}
+                        </a>
+                        (<b style="color: red">{{post.quantity}}</b>)
+                        <a class="post-a float-right" href="{{ url_for('reduce', post_id=post.id) }}" style="text-decoration: none;">
+                            ➖
+                        </a>
+                        <a class="post-a float-right" href="{{ url_for('add_to_cart', post_id=post.id) }}"
+                           style="text-decoration: none;">
+                            ➕
+                        </a>
+                        </h5>
 
-                    {{post.type}}
-                        <hr>
-                    <p class="post-meta">
-                        ${{post.article_price}}<br>
-                        {{post.available}}<br>
-                        <a class="float-right" href="{{url_for('remove', post_id=post.id)}}"
-                       style="border-radius: 50%;text-decoration: none;"
-                           onmouseout="this.style.color='black'"
-                           onmouseover="this.style.color='red'">Remove</a>
-                        <hr>
-                    </p>
+                        {{post.type}}
+                            <hr>
+                        <p class="post-meta">
+                            ${{post.article_price}}<br>
+                            {{post.available}}<br>
+                            <a class="float-right" href="{{url_for('remove', post_id=post.id)}}"
+                           style="border-radius: 50%;text-decoration: none;"
+                               onmouseout="this.style.color='black'"
+                               onmouseover="this.style.color='red'">Remove</a>
+                            <hr>
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
+            {% endif %}
         {% endfor %}
     </div>
 
@@ -51,6 +53,7 @@
     <div class="clearfix">
         <a class="btn btn-outline-success float-right" href="{{url_for('checkout')}}"
            style="border-radius: 50%;">checkout</a>
+        <span class="float-left" style=""><b>Total due:</b> ${{total_due}}</span>
     </div>
     <hr>
 </div>

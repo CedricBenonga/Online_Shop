@@ -278,118 +278,153 @@ def search():
 
 @app.route("/add_to_cart/<int:post_id>")
 def add_to_cart(post_id):
-    posts = UserArticle.query.all()
+    articles = UserArticle.query.all()
     selected_article = ArticlePost.query.get(post_id)
 
     try:
-        try:
-            new_post = UserArticle(
-                name=selected_article.name,
-                quantity=1,
-                img_url1=selected_article.img_url1,
-                img_url2=selected_article.img_url2,
-                img_url3=selected_article.img_url3,
-                article_price=selected_article.article_price,
-                type=selected_article.type,
-                available=selected_article.available,
-                user_id=current_user.id
-            )
-            db.session.add(new_post)
-            db.session.commit()
-        except AttributeError:
+        if not current_user.is_authenticated:
             flash('Please login first.')
-            return redirect(url_for('get_all_posts'))
+            return redirect(url_for('login'))
+
+        new_post = UserArticle(
+            name=selected_article.name,
+            quantity=1,
+            img_url1=selected_article.img_url1,
+            img_url2=selected_article.img_url2,
+            img_url3=selected_article.img_url3,
+            article_price=selected_article.article_price,
+            type=selected_article.type,
+            available=selected_article.available,
+            user_id=current_user.id
+        )
+        db.session.add(new_post)
+        db.session.commit()
 
     except sqlalchemy.exc.IntegrityError:
+        db.session.rollback()
+        for article in articles:
 
-        for post in posts:
-            if selected_article in posts and current_user.id != post.user_id or selected_article not in posts:
-                db.session.rollback()
+            if article.user_id == current_user.id:
                 try:
-                    db.session.rollback()
-                    new_post = UserArticle(
-                        name=selected_article.name,
-                        quantity=1,
-                        img_url1=selected_article.img_url1,
-                        img_url2=selected_article.img_url2,
-                        img_url3=selected_article.img_url3,
-                        article_price=selected_article.article_price,
-                        type=selected_article.type,
-                        available=selected_article.available,
-                        user_id=current_user.id
-                    )
-                    db.session.add(new_post)
+
                     try:
-                        db.session.commit()
-                    except sqlalchemy.exc.IntegrityError:
+                        if article.name == selected_article.name and article.user_id == current_user.id:
+                            article.quantity += 1
+                            article.article_price += selected_article.article_price
+                            db.session.commit()
+                    except sqlalchemy.exc.PendingRollbackError:
                         db.session.rollback()
-                except AttributeError:
-                    flash('Please login first.')
-                    return redirect(url_for('get_all_posts'))
+                        if article.user_id == current_user.id:
+                            article.quantity += 1
+                            article.article_price += selected_article.article_price
+                            db.session.commit()
 
-            else:
-
-                try:
-                    if post.name == selected_article.name and post.user_id == current_user.id:
-                        post.quantity += 1
-                        post.article_price += selected_article.article_price
-                        db.session.commit()
-                except sqlalchemy.exc.PendingRollbackError:
+                except sqlalchemy.exc.IntegrityError:
                     db.session.rollback()
-                    if post.user_id == current_user.id:
-                        post.quantity += 1
-                        post.article_price += selected_article.article_price
-                        db.session.commit()
 
-                return redirect(url_for('get_all_posts'))
+            if article.user_id != current_user.id:
+                db.session.rollback()
+                new_post = UserArticle(
+                    name=selected_article.name,
+                    quantity=1,
+                    img_url1=selected_article.img_url1,
+                    img_url2=selected_article.img_url2,
+                    img_url3=selected_article.img_url3,
+                    article_price=selected_article.article_price,
+                    type=selected_article.type,
+                    available=selected_article.available,
+                    user_id=current_user.id
+                )
+                db.session.add(new_post)
+                try:
+                    db.session.commit()
+                except sqlalchemy.exc.IntegrityError:
+                    db.session.rollback()
+
+    except AttributeError:
+        db.session.rollback()
+
+        for article in articles:
+            if article.user_id == current_user.id:
+                try:
+                    try:
+                        if article.name == selected_article.name and article.user_id == current_user.id:
+                            article.quantity += 1
+                            article.article_price += selected_article.article_price
+                            db.session.commit()
+                    except sqlalchemy.exc.PendingRollbackError:
+                        db.session.rollback()
+                        if article.user_id == current_user.id:
+                            article.quantity += 1
+                            article.article_price += selected_article.article_price
+                            db.session.commit()
+                except sqlalchemy.exc.IntegrityError:
+                    db.session.rollback()
+
+            if article.user_id != current_user.id:
+                db.session.rollback()
+                new_post = UserArticle(
+                    name=selected_article.name,
+                    quantity=1,
+                    img_url1=selected_article.img_url1,
+                    img_url2=selected_article.img_url2,
+                    img_url3=selected_article.img_url3,
+                    article_price=selected_article.article_price,
+                    type=selected_article.type,
+                    available=selected_article.available,
+                    user_id=current_user.id
+                )
+                db.session.add(new_post)
+                try:
+                    db.session.commit()
+                except sqlalchemy.exc.IntegrityError:
+                    db.session.rollback()
+
+        # return redirect(url_for('get_all_posts'))
     return redirect(url_for('get_all_posts'))
-    # return render_template("index.html", all_posts=ArticlePost)
 
 
 @app.route("/reduce/<int:post_id>")
 def reduce(post_id):
-    posts = UserArticle.query.all()
-    selected_article = ArticlePost.query.get(post_id)
+    articles = UserArticle.query.all()
+    selected_article = UserArticle.query.get(post_id)
 
-    for post in posts:
-
-        try:
-            if post.name == selected_article.name and post.user_id == current_user.id:
-                if post.quantity > 0:
-                    post.quantity -= 1
-                    post.article_price -= selected_article.article_price
+    try:
+        for article in articles:
+            try:
+                if article.name == selected_article.name and article.user_id == current_user.id:
+                    if article.quantity > 0:
+                        article.quantity -= 1
+                        article.article_price -= selected_article.article_price
+                        db.session.commit()
+                    else:
+                        article.quantity = 0
+                        article.article_price = 0
+                        db.session.commit()
+            except sqlalchemy.exc.PendingRollbackError:
+                db.session.rollback()
+                if article.quantity > 0:
+                    article.quantity -= 1
+                    article.article_price -= selected_article.article_price
                     db.session.commit()
                 else:
-                    post.quantity = 0
-                    post.article_price = 0
+                    article.quantity = 0
+                    article.article_price = 0
                     db.session.commit()
-        except sqlalchemy.exc.PendingRollbackError:
-            db.session.rollback()
-            if post.quantity > 0:
-                post.quantity -= 1
-                post.article_price -= selected_article.article_price
-                db.session.commit()
-            else:
-                post.quantity = 0
-                post.article_price = 0
-                db.session.commit()
-
+    except sqlalchemy.exc.IntegrityError:
+        db.session.rollback()
     return redirect(url_for('cart'))
     # return render_template("index.html", all_posts=ArticlePost)
 
 
 @app.route("/cart")
 def cart():
-    posts = UserArticle.query.all()
-    user_posts = []
-    try:
-        for post in posts:
-            if post.user_id == current_user.id:
-                user_posts.append(post)
-    except AttributeError:
-        pass
-
-    return render_template("cart.html", all_posts=user_posts)
+    articles = UserArticle.query.all()
+    total_due = 0
+    for article in articles:
+        if article.user_id == current_user.id:
+            total_due += article.article_price
+    return render_template("cart.html", all_posts=articles, total_due=total_due)
 
 
 @app.route("/remove/<int:post_id>")
@@ -412,15 +447,12 @@ def remove(post_id):
 
 @app.route("/checkout")
 def checkout():
-    posts = UserArticle.query.all()
-    user_posts = []
-    try:
-        for post in posts:
-            if post.user_id == current_user.id:
-                user_posts.append(post)
-    except AttributeError:
-        pass
-    return render_template("checkout.html", all_posts=user_posts)
+    articles = UserArticle.query.all()
+    total_due = 0
+    for article in articles:
+        if article.user_id == current_user.id:
+            total_due += article.article_price
+    return render_template("checkout.html", all_posts=total_due)
 
 
 if __name__ == "__main__":
