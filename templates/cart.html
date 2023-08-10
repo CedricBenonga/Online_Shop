@@ -1,6 +1,9 @@
 {% include "header.html" %}
 
 <div class="container" style="padding-top: 75px;">
+    {% if current_user.is_authenticated %}
+        <span style="position: absolute; color: red; margin-left: 630px; margin-top: -60px;">{{ art_nbr }}</span>
+    {% endif %}
     <!--    Site title-->
     <h4 style="color: #526D82; text-align: center; padding-bottom: 25px;">
         Your selected articles!</h4>
@@ -21,20 +24,24 @@
                         <a class="post-a" href="{{ url_for('show_post', post_id=post.id) }}" style="text-decoration: none;">
                             {{post.name}}
                         </a>
-                        (<b style="color: red">{{post.quantity}}</b>)
-                        <a class="post-a float-right" href="{{ url_for('reduce', post_id=post.id) }}" style="text-decoration: none;">
-                            ➖
-                        </a>
+
+                        <a class="post-a float-right" href="{{ url_for('reduce', post_id=post.id) }}"
+                           style="text-decoration: none;"> ➖ </a>
+
+                            {% if post.quantity == 0 %}
+                                <b class="float-right" style="color: red;">{{post.quantity}}</b>
+                            {% else: %}
+                                <b class="float-right" style="color: #557A46;">{{post.quantity}}</b>
+                            {% endif %}
+
                         <a class="post-a float-right" href="{{ url_for('add_to_cart', post_id=post.id) }}"
-                           style="text-decoration: none;">
-                            ➕
-                        </a>
+                           style="text-decoration: none;"> ➕ </a>
                         </h5>
 
                         {{post.type}}
                             <hr>
                         <p class="post-meta">
-                            ${{post.article_price}}<br>
+                            ${{ round(post.article_price, 2) }}<br>
                             {{post.available}}<br>
                             <a class="float-right" href="{{url_for('remove', post_id=post.id)}}"
                            style="border-radius: 50%;text-decoration: none;"
@@ -53,7 +60,7 @@
     <div class="clearfix">
         <a class="btn btn-outline-success float-right" href="{{url_for('checkout')}}"
            style="border-radius: 50%;">checkout</a>
-        <span class="float-left" style=""><b>Total due:</b> ${{total_due}}</span>
+        <span class="float-left" style=""><b>Total due: <i style="color: #557A46;">${{total_due}}</i></b></span>
     </div>
     <hr>
 </div>

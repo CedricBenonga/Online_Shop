@@ -1,6 +1,9 @@
 {% include "header.html" %}
 
 <div class="container" style="padding-top: 75px;">
+    {% if current_user.is_authenticated %}
+        <span style="position: absolute; color: red; margin-left: 630px; margin-top: -60px;">{{ art_nbr }}</span>
+    {% endif %}
     <!--    Site title-->
     <h4 style="color: #526D82; text-align: center; padding-bottom: 25px;">
         Welcome to High Quality Shoes (HQS)</h4>
@@ -9,11 +12,10 @@
     <nav class="navbar" style="margin-bottom:40px;">
         <div class="container-fluid">
             <form action="{{ url_for('search') }}" method="post" class="d-flex" style="position: absolute; right: 0;">
-                <input class="form-control me-2" type="search" placeholder="Search name or location" aria-label="Search"
+                <input class="form-control me-2" type="search" placeholder="Search shoe's name" aria-label="Search"
                        name="search">
-                <button class="btn btn-outline-dark" type="submit"
-                        style="height: 44px; border-radius: 5%; padding-bottom: 20px;">
-                    Search
+                <button class="btn btn-dark" type="submit"
+                        style="height: 44px; border-radius: 5%; padding-bottom: 20px;"><i class="fas fa-search"></i>
                 </button>
             </form>
         </div>
@@ -48,15 +50,15 @@
                     <hr>
                     <p class="post-meta">
 
-                        ${{post.article_price}}<em class="float-right">{{post.available}}</em><br>
+                        ${{post.article_price}}
 
-                        <b><a class="float-left" href="{{url_for('add_to_cart', post_id=post.id)}}"
-                           style="text-decoration: none;"
-                           onmouseout="this.style.color='black'"
-                           onmouseover="this.style.color='green'">Add to Cart</a>
+                        <b><a class="btn btn-success float-right" href="{{url_for('add_to_cart', post_id=post.id)}}"
+                           style="text-decoration: none; border-radius: 5%; padding: 0 5px; text-transform: none;">Add to Cart</a></b><br>
 
-                        <a class="float-right" href="{{url_for('cart')}}"
-                           style="text-decoration: none;">Go to Cart</a><br></b>
+                        <em class="float-left">{{post.available}}</em>
+
+                        <b><a class="btn btn-primary float-right" href="{{url_for('cart')}}"
+                           style="text-decoration: none; border-radius: 5%; padding: 0 5px; text-transform: none;">Go to Cart</a><br></b>
                     <hr>
                     {% if current_user.id == 1 %}
                     <a class="post-a" href="{{url_for('confirm_delete', post_id=post.id) }}"

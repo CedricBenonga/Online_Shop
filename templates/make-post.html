@@ -5,13 +5,13 @@
 {% include "header.html" %}
 
 <!-- Creating Header -->
-<header class="masthead" style="background-image: url('{{ url_for('static', filename='img/edit-bg.jpg')}}')">
+<header class="masthead" style="background-image: url('{{ url_for('static', filename='img/mens_shoes.jpg')}}')">
   <div class="overlay"></div>
   <div class="container">
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
         <div class="page-heading">
-          <h1>Thanks for your contribution!</h1>
+          <h5>Every successful business had a humble beginning... <br> They just didn't give up!</h5>
         </div>
       </div>
     </div>
@@ -22,7 +22,10 @@
 <div class="container">
   <div class="row">
     <div class="col-lg-8 col-md-10 mx-auto content">
-      {{ wtf.render_form(form, novalidate=True, button_map={"submit": "btn btn-outline-dark"}) }}
+      {{ ckeditor.load() }}  <!-- full function-->
+      <!-- {{ ckeditor.load(pkg_type="basic") }} basic functions -->
+      {{ ckeditor.config(name='description') }}
+      {{ wtf.render_form(form, novalidate=True, button_map={"submit": "btn btn-outline-dark"})}}
     </div>
   </div>
 </div>

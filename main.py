@@ -26,24 +26,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
-# Creating article Table
-class ArticlePost(db.Model):
-    __tablename__ = "articles"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(250), unique=True, nullable=False)
-    description = db.Column(db.String(250), unique=True, nullable=False)
-    img_url1 = db.Column(db.String(250), nullable=False)
-    img_url2 = db.Column(db.String(250), nullable=False)
-    img_url3 = db.Column(db.String(250), nullable=False)
-    article_price = db.Column(db.Integer, nullable=False)
-    type = db.Column(db.String(250), nullable=False)
-    available = db.Column(db.String(250), nullable=False)
-
-
-with app.app_context():
-    db.create_all()
-
-
 # Creating users Table
 class User(UserMixin, db.Model):
     __tablename__ = "users"
@@ -51,6 +33,30 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     name = db.Column(db.String(100))
+    user_articles = relationship("UserArticle", back_populates="user_article")
+    posts = relationship("ArticlePost", back_populates="user")
+
+
+# Creating article Table
+class ArticlePost(db.Model):
+    __tablename__ = "articles"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    name = db.Column(db.String(250), unique=True, nullable=False)
+    description = db.Column(db.Text(250), nullable=False)
+    img_url1 = db.Column(db.String(250), nullable=False)
+    img_url2 = db.Column(db.String(250), nullable=False)
+    img_url3 = db.Column(db.String(250), nullable=False)
+    article_price = db.Column(db.Integer, nullable=False)
+    type = db.Column(db.String(250), nullable=False)
+    available = db.Column(db.String(250), nullable=False)
+    # ***************Parent Relationship*************#
+    user_articles = relationship("UserArticle", back_populates="parent_post")
+    user = relationship("User", back_populates="posts")
+
+
+with app.app_context():
+    db.create_all()
 
 
 with app.app_context():
@@ -70,9 +76,15 @@ class UserArticle(db.Model):
     type = db.Column(db.String(250), nullable=False)
     available = db.Column(db.String(250), nullable=False)
     # # Creating a relational database
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))  # To get this line successfully, the User class must be
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    # To get this line successfully, the User class must be
     # on top of the TaskPost class as the DB is created from the top lines going down. So if the TaskPost comes first,
     # it will crush as the ForeignKey("user.id") won't be found bcz it's not yet created.
+
+    # ***************Child Relationship*************#
+    article_id = db.Column(db.Integer, db.ForeignKey("articles.id"))
+    parent_post = relationship("ArticlePost", back_populates="user_articles")
+    user_article = relationship("User", back_populates="user_articles")
 
 
 with app.app_context():
@@ -116,7 +128,13 @@ def load_user(user_id):
 @app.route('/')
 def get_all_posts():
     posts = ArticlePost.query.all()
-    return render_template("index.html", all_posts=posts)
+    articles = UserArticle.query.all()
+    art_nbr = 0
+    for article in articles:
+        if current_user.is_authenticated and article.user_id == current_user.id:
+            art_nbr += article.quantity
+
+    return render_template("index.html", all_posts=posts, art_nbr=art_nbr)
 
 
 @app.route('/register', methods=["GET", "POST"])
@@ -297,6 +315,7 @@ def add_to_cart(post_id):
             available=selected_article.available,
             user_id=current_user.id
         )
+
         db.session.add(new_post)
         db.session.commit()
 
@@ -335,6 +354,7 @@ def add_to_cart(post_id):
                     available=selected_article.available,
                     user_id=current_user.id
                 )
+
                 db.session.add(new_post)
                 try:
                     db.session.commit()
@@ -343,6 +363,7 @@ def add_to_cart(post_id):
 
     except AttributeError:
         db.session.rollback()
+        print("AttributeError")
 
         for article in articles:
             if article.user_id == current_user.id:
@@ -360,6 +381,7 @@ def add_to_cart(post_id):
                             db.session.commit()
                 except sqlalchemy.exc.IntegrityError:
                     db.session.rollback()
+                    db.session.commit()
 
             if article.user_id != current_user.id:
                 db.session.rollback()
@@ -374,13 +396,12 @@ def add_to_cart(post_id):
                     available=selected_article.available,
                     user_id=current_user.id
                 )
+
                 db.session.add(new_post)
                 try:
                     db.session.commit()
                 except sqlalchemy.exc.IntegrityError:
                     db.session.rollback()
-
-        # return redirect(url_for('get_all_posts'))
     return redirect(url_for('get_all_posts'))
 
 
@@ -394,8 +415,8 @@ def reduce(post_id):
             try:
                 if article.name == selected_article.name and article.user_id == current_user.id:
                     if article.quantity > 0:
+                        article.article_price -= int(article.article_price) / int(article.quantity)
                         article.quantity -= 1
-                        article.article_price -= selected_article.article_price
                         db.session.commit()
                     else:
                         article.quantity = 0
@@ -403,9 +424,10 @@ def reduce(post_id):
                         db.session.commit()
             except sqlalchemy.exc.PendingRollbackError:
                 db.session.rollback()
+                print("PendingRollbackError")
                 if article.quantity > 0:
+                    article.article_price -= int(article.article_price) / int(article.quantity)
                     article.quantity -= 1
-                    article.article_price -= selected_article.article_price
                     db.session.commit()
                 else:
                     article.quantity = 0
@@ -414,17 +436,22 @@ def reduce(post_id):
     except sqlalchemy.exc.IntegrityError:
         db.session.rollback()
     return redirect(url_for('cart'))
-    # return render_template("index.html", all_posts=ArticlePost)
 
 
 @app.route("/cart")
 def cart():
     articles = UserArticle.query.all()
     total_due = 0
+    art_nbr = 0
     for article in articles:
+
+        if not current_user.is_authenticated:
+            flash('Please login first.')
+            return redirect(url_for('login'))
         if article.user_id == current_user.id:
+            art_nbr += article.quantity
             total_due += article.article_price
-    return render_template("cart.html", all_posts=articles, total_due=total_due)
+    return render_template("cart.html", all_posts=articles, total_due=total_due, art_nbr=art_nbr)
 
 
 @app.route("/remove/<int:post_id>")
@@ -452,7 +479,7 @@ def checkout():
     for article in articles:
         if article.user_id == current_user.id:
             total_due += article.article_price
-    return render_template("checkout.html", all_posts=total_due)
+    return render_template("payment.html", total_due=total_due)
 
 
 if __name__ == "__main__":

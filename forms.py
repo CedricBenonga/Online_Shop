@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, IntegerField
+from wtforms import StringField, SubmitField, PasswordField, IntegerField, FloatField
 from wtforms.validators import DataRequired, URL
 from flask_ckeditor import CKEditorField
 
@@ -11,7 +11,7 @@ class CreatePostForm(FlaskForm):
     img_url1 = StringField("Article Image URL1", validators=[DataRequired(), URL()])
     img_url2 = StringField("Article Image URL2", validators=[DataRequired(), URL()])
     img_url3 = StringField("Article Image URL3", validators=[DataRequired(), URL()])
-    article_price = IntegerField("Article Price", validators=[DataRequired()])
+    article_price = FloatField("Article Price", validators=[DataRequired()])
     type = StringField("Article Type", validators=[DataRequired()])
     available = StringField("Available", validators=[DataRequired()])
     submit = SubmitField("Submit")

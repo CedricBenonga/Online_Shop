@@ -60,23 +60,21 @@
                     <h1>{{post.name}}</h1>
                     <h2 class="subheading">${{post.article_price}}</h2>
                     <div style=" width: 300px;">
-                        <p>{{post.description}}</p>
+                        {{ post.description |safe }} <!-- To avoid seeing html codes on the website -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 <!-- Post Content -->
 <article>
     <div class="container">
         <div class="row">
             <p class="col-lg-8 col-md-10 mx-auto">
-                {{ post.body|safe }}
                 <hr>
 
                 <p class="clearfix">
-                    <a class="btn btn-outline-success" href="{{url_for('add_to_cart', post_id=post.id)}}"
+                    <a class="btn btn-outline-dark" href="{{url_for('add_to_cart', post_id=post.id)}}"
                        style="border-radius: 50%; margin-left: 165px;">Add to Cart</a>
 
                 {% if current_user.id == 1 %}
@@ -84,7 +82,7 @@
                        style="border-radius: 50%; margin-left: 80px;">Edit Post</a>
                 {% endif %}
 
-                    <a class="btn btn-outline-success float-right" href="{{url_for('cart')}}"
+                    <a class="btn btn-outline-dark float-right" href="{{url_for('cart')}}"
                        style="border-radius: 50%; margin-right: 165px;">Go to Cart</a>
                 </p>
             </p>
