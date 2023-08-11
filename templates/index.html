@@ -4,18 +4,18 @@
 
 
     <!--    Site title -->
-    <h4 style="color: #526D82; text-align: center; padding-bottom: 25px;">
-        Welcome to High Quality Shoes (HQS)</h4>
+    <h2 style="color: #526D82; text-align: center; padding-bottom: 25px;">
+        High Quality Classic Shoes (HQCS)</h2>
 
     <!--    Search-bar-->
     <nav class="navbar" style="margin-bottom:40px;">
         <div class="container-fluid">
-    {% if current_user.is_authenticated %}
-    <a href="{{url_for('cart')}}" style="color: red; text-decoration: none;">
-         <i class="fa fa-1x fas fa-shopping-cart" style="color: #526D82;"></i>
-        {{ art_nbr }}
-    </a>
-    {% endif %}
+            {% if current_user.is_authenticated %}
+            <h3><a href="{{url_for('cart')}}" style="color: red; text-decoration: none;">
+                <i class="fa fa-1x fas fa-shopping-cart" style="color: #526D82;"></i>
+                {{ art_nbr }}
+            </a></h3>
+            {% endif %}
             <form action="{{ url_for('search') }}" method="post" class="d-flex" style="position: absolute; right: 0;">
                 <input class="form-control me-2" type="search" placeholder="Search shoe's name" aria-label="Search"
                        name="search">
@@ -66,9 +66,9 @@
                         <b><a class="btn btn-primary float-right" href="{{url_for('cart')}}"
                               style="text-decoration: none; border-radius: 7.5%; padding: 0 5px; text-transform: none;">Go
                             to Cart</a><br></b>
-                    {% if current_user.id == 1 %}
-                    <a class="post-a" href="{{url_for('confirm_delete', post_id=post.id) }}"
-                       style="text-decoration: none;">Delete Article</a>
+                        {% if current_user.id == 1 %}
+                        <a class="post-a" href="{{url_for('confirm_delete', post_id=post.id) }}"
+                           style="text-decoration: none;">Delete Article</a>
                     <hr>
                     {% endif %}
 
