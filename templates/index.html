@@ -1,16 +1,21 @@
 {% include "header.html" %}
 
-<div class="container" style="padding-top: 75px;">
-    {% if current_user.is_authenticated %}
-        <span style="position: absolute; color: red; margin-left: 630px; margin-top: -60px;">{{ art_nbr }}</span>
-    {% endif %}
-    <!--    Site title-->
+<div class="container" style="padding-top: 100px;">
+
+
+    <!--    Site title -->
     <h4 style="color: #526D82; text-align: center; padding-bottom: 25px;">
         Welcome to High Quality Shoes (HQS)</h4>
 
     <!--    Search-bar-->
     <nav class="navbar" style="margin-bottom:40px;">
         <div class="container-fluid">
+    {% if current_user.is_authenticated %}
+    <a href="{{url_for('cart')}}" style="color: red; text-decoration: none;">
+         <i class="fa fa-1x fas fa-shopping-cart" style="color: #526D82;"></i>
+        {{ art_nbr }}
+    </a>
+    {% endif %}
             <form action="{{ url_for('search') }}" method="post" class="d-flex" style="position: absolute; right: 0;">
                 <input class="form-control me-2" type="search" placeholder="Search shoe's name" aria-label="Search"
                        name="search">
@@ -21,6 +26,7 @@
         </div>
     </nav>
 
+    <!-- Flush message -->
     <div class="col-lg-8 col-md-10 mx-auto content">
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -47,22 +53,23 @@
                         <h5 class="post-subtitle">{{post.name}} </h5>
                     </a>
                     {{post.type}}
-                    <hr>
                     <p class="post-meta">
 
                         ${{post.article_price}}
 
                         <b><a class="btn btn-success float-right" href="{{url_for('add_to_cart', post_id=post.id)}}"
-                           style="text-decoration: none; border-radius: 5%; padding: 0 5px; text-transform: none;">Add to Cart</a></b><br>
+                              style="text-decoration: none; border-radius: 7.5%; padding: 0 5px; text-transform: none;">Add
+                            to Cart</a></b><br>
 
-                        <em class="float-left">{{post.available}}</em>
+                        <em class="float-left" style="color: green;">{{post.available}}</em>
 
                         <b><a class="btn btn-primary float-right" href="{{url_for('cart')}}"
-                           style="text-decoration: none; border-radius: 5%; padding: 0 5px; text-transform: none;">Go to Cart</a><br></b>
-                    <hr>
+                              style="text-decoration: none; border-radius: 7.5%; padding: 0 5px; text-transform: none;">Go
+                            to Cart</a><br></b>
                     {% if current_user.id == 1 %}
                     <a class="post-a" href="{{url_for('confirm_delete', post_id=post.id) }}"
                        style="text-decoration: none;">Delete Article</a>
+                    <hr>
                     {% endif %}
 
                 </div>
@@ -84,7 +91,11 @@
 {% include "footer.html" %}
 
 
-<!--<i class="fas fa-bags-shopping"></i>-->
-<!--<i class="fas fa-shopping-bag"></i>-->
-<!--<i class="fas fa-shopping-cart"></i>-->
-<!--<i class="fas fa-shopping-basket"></i>-->
+<!--
+
+<i class="fas fa-bags-shopping"></i>
+<i class="fas fa-shopping-bag"></i>
+<i class="fas fa-shopping-cart"></i>
+<i class="fas fa-shopping-basket"></i>
+
+-->

@@ -1,20 +1,20 @@
 {% include "header.html" %}
 
-  <!-- Page Header -->
-  <header class="masthead" style="background-image: url({{ url_for('static', filename='img/duplicate-bg.jpg')}})">
+<!-- Page Header -->
+<header class="masthead" style="background-image: url({{ url_for('static', filename='img/duplicate-bg.jpg')}})">
     <div class="overlay"></div>
     <div class="container">
-      <div class="row">
-        <div class="col-lg-8 col-md-10 mx-auto">
-          <div class="page-heading">
-            <h1 style="color: #CF0A0A;">Duplicate Post!</h1>
-            <span class="subheading">That Article already exists in the database.</span><br>
-            <a href="{{ url_for('add_new_post') }}" class="btn btn-outline-success"
-               style="width: 130px;border-radius: 10%; margin: 0px 25px 0px 25px;">Retry</a>
-          </div>
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="page-heading">
+                    <h1 style="color: #CF0A0A;">Duplicate Post!</h1>
+                    <span class="subheading">This Article's name already exists in the database.</span><br>
+                    <a href="{{ url_for('add_new_post') }}" class="btn btn-outline-success"
+                       style="width: 130px;border-radius: 10%; margin: 0px 25px 0px 25px;">Retry</a>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </header>
+</header>
 
-  {% include "footer.html" %}
+{% include "footer.html" %}

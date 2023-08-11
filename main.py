@@ -3,10 +3,10 @@ import sqlalchemy
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_bootstrap import Bootstrap5
 
-# # if Bootstrap5 gives red, please run these two lines of code to the terminal:
-# pip uninstall flask-bootstrap bootstrap-flask
-# pip install bootstrap-flask
-# # And, in the interpreter under settings, uninstall both then install bootstrap-flask
+''' if Bootstrap5 gives red, please run these two lines of code to the terminal:
+    - pip uninstall flask-bootstrap bootstrap-flask
+    - pip install bootstrap-flask
+And, in the interpreter under settings, uninstall both then install bootstrap-flask '''
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
@@ -37,6 +37,10 @@ class User(UserMixin, db.Model):
     posts = relationship("ArticlePost", back_populates="user")
 
 
+with app.app_context():
+    db.create_all()
+
+
 # Creating article Table
 class ArticlePost(db.Model):
     __tablename__ = "articles"
@@ -59,11 +63,7 @@ with app.app_context():
     db.create_all()
 
 
-with app.app_context():
-    db.create_all()
-
-
-# Creating article Table
+# Creating user article Table
 class UserArticle(db.Model):
     __tablename__ = "user_articles"
     id = db.Column(db.Integer, primary_key=True)
@@ -75,7 +75,7 @@ class UserArticle(db.Model):
     article_price = db.Column(db.Integer, nullable=False)
     type = db.Column(db.String(250), nullable=False)
     available = db.Column(db.String(250), nullable=False)
-    # # Creating a relational database
+    # Creating a relational database
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     # To get this line successfully, the User class must be
     # on top of the TaskPost class as the DB is created from the top lines going down. So if the TaskPost comes first,
@@ -125,6 +125,12 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+# Formatting price to only up to the first two digits after coma without rounding the number
+def format_to_2_decimal(num):
+    return int(num*100)/100.0
+
+
+# Home page
 @app.route('/')
 def get_all_posts():
     posts = ArticlePost.query.all()
@@ -137,6 +143,7 @@ def get_all_posts():
     return render_template("index.html", all_posts=posts, art_nbr=art_nbr)
 
 
+# User registration
 @app.route('/register', methods=["GET", "POST"])
 def register():
     form = RegisterForm()
@@ -172,6 +179,7 @@ def register():
     return render_template("register.html", form=form)
 
 
+# User login
 @app.route('/login', methods=["GET", "POST"])
 def login():
     form = LoginForm()
@@ -202,18 +210,21 @@ def login():
     return render_template("login.html", form=form)
 
 
+# User logout
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('get_all_posts'))
 
 
+# Article details
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
     requested_post = ArticlePost.query.get(post_id)
     return render_template("post.html", post=requested_post, current_user=current_user)
 
 
+# Admin adding new article
 @app.route("/new-post", methods=['GET', 'POST'])
 @admin_only  # This decorator checks if the user is the admin or not
 def add_new_post():
@@ -234,10 +245,12 @@ def add_new_post():
             db.session.commit()
             return redirect(url_for("get_all_posts"))
     except sqlalchemy.exc.IntegrityError:
+        db.session.rollback()
         return render_template("duplicate.html")
     return render_template("make-post.html", form=form)
 
 
+# Admin editing article
 @app.route("/edit-post/<int:post_id>", methods=['GET', 'POST'])
 @admin_only  # This decorator checks if the user is the admin or not
 def edit_post(post_id):
@@ -267,6 +280,7 @@ def edit_post(post_id):
     return render_template("make-post.html", form=edit_form)
 
 
+# Admin deleting article
 @app.route("/delete/<int:post_id>")
 @admin_only  # This decorator checks if the user is the admin or not
 def delete_post(post_id):
@@ -276,12 +290,14 @@ def delete_post(post_id):
     return render_template("success.html", post=post_to_delete)
 
 
+# Delete confirmation
 @app.route("/confirmation/<int:post_id>")
 def confirm_delete(post_id):
     post_to_delete = ArticlePost.query.get(post_id)
     return render_template("confirm_delete.html", post=post_to_delete)
 
 
+# Search for an article
 @app.route("/search", methods=["POST", "GET"])
 def search():
     if request.method == 'POST':
@@ -294,6 +310,7 @@ def search():
         return render_template("index.html", all_posts=list_searched_article)
 
 
+# Adding to cart or increase article quantity in the cart
 @app.route("/add_to_cart/<int:post_id>")
 def add_to_cart(post_id):
     articles = UserArticle.query.all()
@@ -321,90 +338,36 @@ def add_to_cart(post_id):
 
     except sqlalchemy.exc.IntegrityError:
         db.session.rollback()
-        for article in articles:
 
+        for article in articles:
             if article.user_id == current_user.id:
                 try:
-
-                    try:
-                        if article.name == selected_article.name and article.user_id == current_user.id:
-                            article.quantity += 1
-                            article.article_price += selected_article.article_price
-                            db.session.commit()
-                    except sqlalchemy.exc.PendingRollbackError:
-                        db.session.rollback()
-                        if article.user_id == current_user.id:
-                            article.quantity += 1
-                            article.article_price += selected_article.article_price
-                            db.session.commit()
-
-                except sqlalchemy.exc.IntegrityError:
-                    db.session.rollback()
-
-            if article.user_id != current_user.id:
-                db.session.rollback()
-                new_post = UserArticle(
-                    name=selected_article.name,
-                    quantity=1,
-                    img_url1=selected_article.img_url1,
-                    img_url2=selected_article.img_url2,
-                    img_url3=selected_article.img_url3,
-                    article_price=selected_article.article_price,
-                    type=selected_article.type,
-                    available=selected_article.available,
-                    user_id=current_user.id
-                )
-
-                db.session.add(new_post)
-                try:
-                    db.session.commit()
+                    if article.name == selected_article.name:
+                        article.quantity += 1
+                        article.article_price += selected_article.article_price
+                        article.article_price = format_to_2_decimal(article.article_price)
+                        db.session.commit()
                 except sqlalchemy.exc.IntegrityError:
                     db.session.rollback()
 
     except AttributeError:
         db.session.rollback()
-        print("AttributeError")
 
         for article in articles:
             if article.user_id == current_user.id:
                 try:
-                    try:
-                        if article.name == selected_article.name and article.user_id == current_user.id:
-                            article.quantity += 1
-                            article.article_price += selected_article.article_price
-                            db.session.commit()
-                    except sqlalchemy.exc.PendingRollbackError:
-                        db.session.rollback()
-                        if article.user_id == current_user.id:
-                            article.quantity += 1
-                            article.article_price += selected_article.article_price
-                            db.session.commit()
+                    if article.name == selected_article.name:
+                        article.quantity += 1
+                        article.article_price += selected_article.article_price
+                        article.article_price = format_to_2_decimal(article.article_price)
+                        db.session.commit()
                 except sqlalchemy.exc.IntegrityError:
                     db.session.rollback()
-                    db.session.commit()
 
-            if article.user_id != current_user.id:
-                db.session.rollback()
-                new_post = UserArticle(
-                    name=selected_article.name,
-                    quantity=1,
-                    img_url1=selected_article.img_url1,
-                    img_url2=selected_article.img_url2,
-                    img_url3=selected_article.img_url3,
-                    article_price=selected_article.article_price,
-                    type=selected_article.type,
-                    available=selected_article.available,
-                    user_id=current_user.id
-                )
-
-                db.session.add(new_post)
-                try:
-                    db.session.commit()
-                except sqlalchemy.exc.IntegrityError:
-                    db.session.rollback()
     return redirect(url_for('get_all_posts'))
 
 
+# Reduce article quantity in the cart
 @app.route("/reduce/<int:post_id>")
 def reduce(post_id):
     articles = UserArticle.query.all()
@@ -412,24 +375,13 @@ def reduce(post_id):
 
     try:
         for article in articles:
-            try:
-                if article.name == selected_article.name and article.user_id == current_user.id:
-                    if article.quantity > 0:
-                        article.article_price -= int(article.article_price) / int(article.quantity)
-                        article.quantity -= 1
-                        db.session.commit()
-                    else:
-                        article.quantity = 0
-                        article.article_price = 0
-                        db.session.commit()
-            except sqlalchemy.exc.PendingRollbackError:
-                db.session.rollback()
-                print("PendingRollbackError")
+            if article.user_id == current_user.id and article.name == selected_article.name:
                 if article.quantity > 0:
                     article.article_price -= int(article.article_price) / int(article.quantity)
+                    article.article_price = format_to_2_decimal(article.article_price)
                     article.quantity -= 1
                     db.session.commit()
-                else:
+                if article.quantity <= 0:
                     article.quantity = 0
                     article.article_price = 0
                     db.session.commit()
@@ -438,6 +390,7 @@ def reduce(post_id):
     return redirect(url_for('cart'))
 
 
+# Display articles and total price in the cart
 @app.route("/cart")
 def cart():
     articles = UserArticle.query.all()
@@ -451,9 +404,11 @@ def cart():
         if article.user_id == current_user.id:
             art_nbr += article.quantity
             total_due += article.article_price
+            total_due = format_to_2_decimal(total_due)
     return render_template("cart.html", all_posts=articles, total_due=total_due, art_nbr=art_nbr)
 
 
+# Remove article from the cart
 @app.route("/remove/<int:post_id>")
 def remove(post_id):
     article_to_remove = UserArticle.query.get(post_id)
@@ -462,6 +417,7 @@ def remove(post_id):
 
     posts = UserArticle.query.all()
     user_posts = []
+
     try:
         for post in posts:
             if post.user_id == current_user.id:
@@ -472,6 +428,8 @@ def remove(post_id):
     return render_template("cart.html", all_posts=user_posts)
 
 
+# Checkout section
+# https://developers.payfast.co.za/docs#step_1_form_fields
 @app.route("/checkout")
 def checkout():
     articles = UserArticle.query.all()
@@ -479,7 +437,9 @@ def checkout():
     for article in articles:
         if article.user_id == current_user.id:
             total_due += article.article_price
+            total_due = format_to_2_decimal(total_due)
     return render_template("payment.html", total_due=total_due)
+# https://developers.payfast.co.za/docs#step_1_form_fields
 
 
 if __name__ == "__main__":

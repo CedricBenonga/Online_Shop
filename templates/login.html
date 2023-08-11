@@ -21,8 +21,9 @@
 <div class="container">
     <div class="row">
 
-        <!-- Displaying flashed message -->
         <div class="col-lg-8 col-md-10 mx-auto content">
+
+            <!-- Displaying flashed message -->
             {% with messages = get_flashed_messages() %}
             {% if messages %}
             {% for message in messages %}
@@ -30,7 +31,10 @@
             {% endfor %}
             {% endif %}
             {% endwith %}
+
+            <!-- Displaying login form -->
             {{ wtf.render_form(form, novalidate=True, button_map={"submit": "btn btn-outline-dark"}) }}
+
         </div>
     </div>
 </div>

@@ -4,13 +4,13 @@
 {% block content %}
 {% include "header.html" %}
 
-
     <div class="overlay"></div>
     <div class="container">
         <div class="row">
             <div class="col-lg-8 col-md-10 mx-auto">
                 <div class="post-heading">
 
+                    <!-- Sliding carousel -->
                     <div id="demo" class="carousel slide" data-bs-ride="carousel" style="margin-top: 100px;">
 
                         <!-- Indicators/dots -->
@@ -60,13 +60,13 @@
                     <h1>{{post.name}}</h1>
                     <h2 class="subheading">${{post.article_price}}</h2>
                     <div style=" width: 300px;">
-                        {{ post.description |safe }} <!-- To avoid seeing html codes on the website -->
+                        {{ post.description |safe }} <!-- |safe -> To avoid seeing html codes on the website -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
-<!-- Post Content -->
+
 <article>
     <div class="container">
         <div class="row">

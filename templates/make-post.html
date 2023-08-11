@@ -22,8 +22,8 @@
 <div class="container">
   <div class="row">
     <div class="col-lg-8 col-md-10 mx-auto content">
-      {{ ckeditor.load() }}  <!-- full function-->
-      <!-- {{ ckeditor.load(pkg_type="basic") }} basic functions -->
+      <!-- {{ ckeditor.load() }}  full function-->
+      {{ ckeditor.load(pkg_type="basic") }} <!-- basic functions -->
       {{ ckeditor.config(name='description') }}
       {{ wtf.render_form(form, novalidate=True, button_map={"submit": "btn btn-outline-dark"})}}
     </div>
