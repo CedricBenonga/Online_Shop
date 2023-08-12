@@ -374,10 +374,10 @@ def reduce(post_id):
 @app.route("/cart")
 def cart():
     articles = UserArticle.query.all()
+
     total_due = 0
     art_nbr = 0
     for article in articles:
-
         if not current_user.is_authenticated:
             flash('Please login first.')
             return redirect(url_for('login'))
@@ -385,6 +385,7 @@ def cart():
             art_nbr += int(article.quantity)
             total_due += article.article_price
             total_due = format_to_2_decimal(total_due)
+
     return render_template("cart.html", all_posts=articles, total_due=total_due, art_nbr=art_nbr)
 
 
