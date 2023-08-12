@@ -412,6 +412,7 @@ def remove(post_id):
 # https://developers.payfast.co.za/docs#step_1_form_fields  # Link for PayFast
 @app.route("/checkout")
 def checkout():
+    # Telling the user that this item is no longer available => to be added.
     articles = UserArticle.query.all()
     total_due = 0
     for article in articles:
