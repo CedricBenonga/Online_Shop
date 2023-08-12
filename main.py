@@ -44,9 +44,9 @@ with app.app_context():
 # Creating article Table
 class ArticlePost(db.Model):
     __tablename__ = "articles"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, unique=True, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    name = db.Column(db.String(250), unique=True, nullable=False)
+    name = db.Column(db.String(250), nullable=False)
     description = db.Column(db.Text(250), nullable=False)
     img_url1 = db.Column(db.String(250), nullable=False)
     img_url2 = db.Column(db.String(250), nullable=False)
@@ -66,9 +66,9 @@ with app.app_context():
 # Creating user article Table
 class UserArticle(db.Model):
     __tablename__ = "user_articles"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(250), unique=True, nullable=False)
-    quantity = db.Column(db.Integer, unique=True, nullable=False)
+    id = db.Column(db.Integer, unique=True, primary_key=True)
+    name = db.Column(db.String(250), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
     img_url1 = db.Column(db.String(250), nullable=False)
     img_url2 = db.Column(db.String(250), nullable=False)
     img_url3 = db.Column(db.String(250), nullable=False)
@@ -127,7 +127,7 @@ def load_user(user_id):
 
 # Formatting price to only up to the first two digits after coma without rounding the number
 def format_to_2_decimal(num):
-    return int(num*100)/100.0
+    return int(num*100)/100.00
 
 
 # Home page
@@ -136,9 +136,10 @@ def get_all_posts():
     posts = ArticlePost.query.all()
     articles = UserArticle.query.all()
     art_nbr = 0
-    for article in articles:
-        if current_user.is_authenticated and article.user_id == current_user.id:
-            art_nbr += article.quantity
+    if len(articles) > 0:
+        for article in articles:
+            if current_user.is_authenticated and article.user_id == current_user.id:
+                art_nbr += int(article.quantity)
 
     return render_template("index.html", all_posts=posts, art_nbr=art_nbr)
 
@@ -316,53 +317,35 @@ def add_to_cart(post_id):
     articles = UserArticle.query.all()
     selected_article = ArticlePost.query.get(post_id)
 
+    if not current_user.is_authenticated:
+        flash('Please login first.')
+        return redirect(url_for('login'))
+
     try:
-        if not current_user.is_authenticated:
-            flash('Please login first.')
-            return redirect(url_for('login'))
+        if selected_article not in articles:
+            new_post = UserArticle(
+                name=selected_article.name,
+                quantity=1,
+                img_url1=selected_article.img_url1,
+                img_url2=selected_article.img_url2,
+                img_url3=selected_article.img_url3,
+                article_price=selected_article.article_price,
+                type=selected_article.type,
+                available=selected_article.available,
+                user_id=current_user.id
+            )
 
-        new_post = UserArticle(
-            name=selected_article.name,
-            quantity=1,
-            img_url1=selected_article.img_url1,
-            img_url2=selected_article.img_url2,
-            img_url3=selected_article.img_url3,
-            article_price=selected_article.article_price,
-            type=selected_article.type,
-            available=selected_article.available,
-            user_id=current_user.id
-        )
-
-        db.session.add(new_post)
-        db.session.commit()
-
-    except sqlalchemy.exc.IntegrityError:
-        db.session.rollback()
-
-        for article in articles:
-            if article.user_id == current_user.id:
-                try:
-                    if article.name == selected_article.name:
-                        article.quantity += 1
-                        article.article_price += selected_article.article_price
-                        article.article_price = format_to_2_decimal(article.article_price)
-                        db.session.commit()
-                except sqlalchemy.exc.IntegrityError:
-                    db.session.rollback()
+            db.session.add(new_post)
+            db.session.commit()
 
     except AttributeError:
-        db.session.rollback()
 
         for article in articles:
             if article.user_id == current_user.id:
-                try:
-                    if article.name == selected_article.name:
-                        article.quantity += 1
-                        article.article_price += selected_article.article_price
-                        article.article_price = format_to_2_decimal(article.article_price)
-                        db.session.commit()
-                except sqlalchemy.exc.IntegrityError:
-                    db.session.rollback()
+                article.article_price += article.article_price / article.quantity
+                article.article_price = float(format_to_2_decimal(article.article_price))
+                article.quantity += 1
+                db.session.commit()
 
     return redirect(url_for('get_all_posts'))
 
@@ -370,23 +353,20 @@ def add_to_cart(post_id):
 # Reduce article quantity in the cart
 @app.route("/reduce/<int:post_id>")
 def reduce(post_id):
-    articles = UserArticle.query.all()
     selected_article = UserArticle.query.get(post_id)
 
-    try:
-        for article in articles:
-            if article.user_id == current_user.id and article.name == selected_article.name:
-                if article.quantity > 0:
-                    article.article_price -= int(article.article_price) / int(article.quantity)
-                    article.article_price = format_to_2_decimal(article.article_price)
-                    article.quantity -= 1
-                    db.session.commit()
-                if article.quantity <= 0:
-                    article.quantity = 0
-                    article.article_price = 0
-                    db.session.commit()
-    except sqlalchemy.exc.IntegrityError:
-        db.session.rollback()
+    if selected_article.user_id == current_user.id:
+        selected_article.quantity = int(selected_article.quantity)
+        if selected_article.quantity > 1:
+            selected_article.article_price -= int(selected_article.article_price) / int(selected_article.quantity)
+            selected_article.article_price = (format_to_2_decimal(selected_article.article_price))
+            selected_article.quantity -= 1
+            db.session.commit()
+        if int(selected_article.quantity) <= 1:
+            selected_article.quantity = 1
+            selected_article.article_price = selected_article.article_price
+            db.session.commit()
+
     return redirect(url_for('cart'))
 
 
@@ -402,7 +382,7 @@ def cart():
             flash('Please login first.')
             return redirect(url_for('login'))
         if article.user_id == current_user.id:
-            art_nbr += article.quantity
+            art_nbr += int(article.quantity)
             total_due += article.article_price
             total_due = format_to_2_decimal(total_due)
     return render_template("cart.html", all_posts=articles, total_due=total_due, art_nbr=art_nbr)
@@ -429,7 +409,7 @@ def remove(post_id):
 
 
 # Checkout section
-# https://developers.payfast.co.za/docs#step_1_form_fields
+# https://developers.payfast.co.za/docs#step_1_form_fields  # Link for PayFast
 @app.route("/checkout")
 def checkout():
     articles = UserArticle.query.all()
@@ -438,8 +418,8 @@ def checkout():
         if article.user_id == current_user.id:
             total_due += article.article_price
             total_due = format_to_2_decimal(total_due)
-    return render_template("payment.html", total_due=total_due)
-# https://developers.payfast.co.za/docs#step_1_form_fields
+    return render_template("payment.html", total_due=total_due - 0.01)
+# https://developers.payfast.co.za/docs#step_1_form_fields  # Link for PayFast
 
 
 if __name__ == "__main__":
