@@ -386,7 +386,7 @@ def cart():
             total_due += article.article_price
             total_due = format_to_2_decimal(total_due)
 
-    return render_template("cart.html", all_posts=articles, total_due=total_due, art_nbr=art_nbr)
+    return render_template("cart.html", all_posts=articles, total_due=total_due - 0.01, art_nbr=art_nbr)
 
 
 # Remove article from the cart
