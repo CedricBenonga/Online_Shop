@@ -127,7 +127,11 @@ def load_user(user_id):
 
 # Formatting price to only up to the first two digits after coma without rounding the number
 def format_to_2_decimal(num):
-    return int(num*100)/100.00
+    return int(num * 100) / 100.00
+
+
+# Applied discount
+discount = 5
 
 
 # Home page
@@ -386,9 +390,10 @@ def cart():
             art_nbr += int(article.quantity)
             total += article.article_price
             total = format_to_2_decimal(total)
-            total_due = format_to_2_decimal(total - ((5 * total)/100))
+            total_due = format_to_2_decimal(total - ((discount * total) / 100))
 
-    return render_template("cart.html", all_posts=articles, total_due=total_due, total=total, art_nbr=art_nbr)
+    return render_template("cart.html", all_posts=articles, total_due=total_due,
+                           total=total, art_nbr=art_nbr, discount=discount)
 
 
 # Remove article from the cart
@@ -423,10 +428,12 @@ def checkout():
         if article.user_id == current_user.id:
             total_due += article.article_price
 
-    total_due = total_due - ((5 * total_due)/100)
+    total_due = total_due - ((discount * total_due) / 100)
     total_due = format_to_2_decimal(total_due)
 
     return render_template("payment.html", total_due=total_due)
+
+
 # https://developers.payfast.co.za/docs#step_1_form_fields  # Link for PayFast
 
 
