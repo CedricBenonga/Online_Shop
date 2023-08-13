@@ -56,11 +56,15 @@
         {% endfor %}
     </div>
 
-    <!--    New post-->
+    <!-- Checkout -->
     <div class="clearfix">
         <a class="btn btn-outline-success float-right" href="{{url_for('checkout')}}"
-           style="border-radius: 50%;">checkout</a>
-        <h4 class="float-left">Total due: <i style="color: #557A46;">${{total_due}}</i></h4>
+           style="border-radius: 50%; margin-top: 20px;">checkout</a>
+        <h4 class="float-left">
+            Total: <i style="color: #557A46;">${{total}}</i><br>
+            Discount: <i style="color: #557A46;">5%</i><br>
+            Total due: <i style="color: #557A46;">${{total_due}}</i>
+        </h4>
     </div>
     <hr>
 </div>

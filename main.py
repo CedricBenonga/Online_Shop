@@ -341,7 +341,7 @@ def add_to_cart(post_id):
     except AttributeError:
 
         for article in articles:
-            if article.user_id == current_user.id:
+            if article.user_id == current_user.id and article.id == post_id:
                 article.article_price += article.article_price / article.quantity
                 article.article_price = float(format_to_2_decimal(article.article_price))
                 article.quantity += 1
@@ -375,6 +375,7 @@ def reduce(post_id):
 def cart():
     articles = UserArticle.query.all()
 
+    total = 0
     total_due = 0
     art_nbr = 0
     for article in articles:
@@ -383,10 +384,11 @@ def cart():
             return redirect(url_for('login'))
         if article.user_id == current_user.id:
             art_nbr += int(article.quantity)
-            total_due += article.article_price
-            total_due = format_to_2_decimal(total_due)
+            total += article.article_price
+            total = format_to_2_decimal(total)
+            total_due = format_to_2_decimal(total - ((5 * total)/100))
 
-    return render_template("cart.html", all_posts=articles, total_due=total_due - 0.01, art_nbr=art_nbr)
+    return render_template("cart.html", all_posts=articles, total_due=total_due, total=total, art_nbr=art_nbr)
 
 
 # Remove article from the cart
@@ -416,11 +418,15 @@ def checkout():
     # Telling the user that this item is no longer available => to be added.
     articles = UserArticle.query.all()
     total_due = 0
+
     for article in articles:
         if article.user_id == current_user.id:
             total_due += article.article_price
-            total_due = format_to_2_decimal(total_due)
-    return render_template("payment.html", total_due=total_due - 0.01)
+
+    total_due = total_due - ((5 * total_due)/100)
+    total_due = format_to_2_decimal(total_due)
+
+    return render_template("payment.html", total_due=total_due)
 # https://developers.payfast.co.za/docs#step_1_form_fields  # Link for PayFast
 
 
